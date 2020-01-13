@@ -21,7 +21,6 @@ pipeline {
         }
         stage("Push image") {
             steps {
-                steps{
                     sh "docker push -- gcr.io/gcpcloudtest/hello:${env.BUILD_ID}"
                     }
                 }
@@ -32,5 +31,4 @@ pipeline {
             }
         }
     }    
-  }
 }
