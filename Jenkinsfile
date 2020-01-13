@@ -22,7 +22,7 @@ pipeline {
         stage("Push image") {
             steps {
                 script {
-                    docker.withRegistry('https://eu.gcr.io', 'gcr:[gke-6868]') {
+                    docker.withRegistry('https://eu.gcr.io', 'gcr:[gke]') {
                             myapp.push("latest")
                             myapp.push("${env.BUILD_ID}")
                     }
