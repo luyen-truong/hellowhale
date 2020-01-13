@@ -1,38 +1,30 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-name: hello
-labels:
-  app: hello
-spec:
-strategy:
-  type: Recreate
-template:
-  metadata:
-    labels:
-      app: hello
-      tier: hello
-  spec:
-    containers:
-    - name: hello
-      image: luyentv/hello:latest
-      imagePullPolicy: Always
-      ports:
-      - containerPort: 5000
-        name: hello
-
----
 apiVersion: v1
 kind: Service
 metadata:
-name: hello
-labels:
-  app: hello
+  name: echo1
 spec:
-ports:
-  - port: 5000
-    targetPort: 5000
-selector:
-  app: hello
-  tier: hello
-type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 5678
+  selector:
+    app: echo1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo1
+spec:
+  selector:
+    matchLabels:
+      app: echo1
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: echo1
+    spec:
+      containers:
+      - name: echo1
+        image: luyentv/hello:latest
+        ports:
+        - containerPort: 5678
