@@ -21,14 +21,10 @@ pipeline {
         }
         stage("Push image") {
             steps {
-                script {
-                    docker.withRegistry('https://eu.gcr.io', 'gcr:[gke]') {
-                            myapp.push("latest")
-                            myapp.push("${env.BUILD_ID}")
+                steps{
+                    sh "docker push -- gcr.io/gcpcloudtest/hello:${env.BUILD_ID}"
                     }
                 }
-            }
-        }        
         stage('Deploy to GKE') {
             steps{
                 sh "sed -i 's/hello:latest/hello:${env.BUILD_ID}/g' deployment.yaml"
