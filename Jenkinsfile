@@ -15,14 +15,14 @@ pipeline {
         stage("Build image") {
             steps {
                 script {
-                    myapp = docker.build("luyentv/hello:${env.BUILD_ID}")
+                    myapp = docker.build("gcr.io/gcpcloudtest/hello:${env.BUILD_ID}")
                 }
             }
         }
         stage("Push image") {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                    docker.withRegistry('https://eu.gcr.io', 'gcr:[gke-6868]') {
                             myapp.push("latest")
                             myapp.push("${env.BUILD_ID}")
                     }
