@@ -25,6 +25,6 @@ spec:
     spec:
       containers:
       - name: echo1
-        image: luyentv/hello:latest
+        image: gcr.io/gcpcloudtest/hello:latest
         ports:
         - containerPort: 5678
