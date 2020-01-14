@@ -37,7 +37,7 @@ pipeline {
 				credentialsId: env.CREDENTIALS_ID, verifyDeployments: true])
 				  }
 			    }
-		stage ('Deploy to GKE : Master') {
+		stage ('Deploy to GKE-Staging : DEV') {
 			when {
 				expression {
 				return env.GIT_BRANCH == "origin/dev"
