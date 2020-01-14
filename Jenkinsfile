@@ -25,23 +25,20 @@ pipeline {
                     sh "docker push -- gcr.io/gcpcloudtest/hello:${env.BUILD_ID}"
                     }
                 }
-	 stage('Deliver for Staging') {
-            when {
-                branch 'dev'
-            }
+	 stage('Deploy to Production or Staging') {
+           if(env.BRANCH_NAME == 'master') {
 			steps{
                 sh "sed -i 's/hello:latest/hello:${env.BUILD_ID}/g' deployment.yaml"
                 step([$class: 'KubernetesEngineBuilder', projectId: env.PROJECT_ID, clusterName: env.CLUSTER_NAME_STG, location: env.LOCATION, manifestPattern: 'deployment.yaml', credentialsId: env.CREDENTIALS_ID, verifyDeployments: true])
 				}
 			}
-	 stage('Deliver for Production') {
-            when {
-                branch 'master'
-            }
+			else {
+			
             steps{
                 sh "sed -i 's/hello:latest/hello:${env.BUILD_ID}/g' deployment.yaml"
                 step([$class: 'KubernetesEngineBuilder', projectId: env.PROJECT_ID, clusterName: env.CLUSTER_NAME_PRO, location: env.LOCATION, manifestPattern: 'deployment.yaml', credentialsId: env.CREDENTIALS_ID, verifyDeployments: true])
             }
         }
     }
+ }
 }
