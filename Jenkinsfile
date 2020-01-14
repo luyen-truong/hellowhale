@@ -10,32 +10,35 @@ pipeline {
         stage("Checkout code") {
             steps {
                 checkout scm
-				sh 'echo $BRANCH_NAME'
             }
         }
         stage("Build image") {
             steps {
                 script {
-                    myapp = docker.build("gcr.io/gcpcloudtest/hello:${env.BUILD_ID}")
+                    myapp = docker.build("luyentv/hello:${env.BUILD_ID}")
                 }
             }
         }
         stage("Push image") {
             steps {
-                    sh "docker push -- gcr.io/gcpcloudtest/hello:${env.BUILD_ID}"
-                    }
-                }
-        stage('test3') {
-            steps {
                 script {
-                    if (env.BRANCH_NAME == 'origin/master') {
-                        echo 'I only execute on the master branch'
-                    } else {
-                        echo 'I execute elsewhere'
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                            myapp.push("latest")
+                            myapp.push("${env.BUILD_ID}")
                     }
                 }
             }
-        }
-    }
-}
+        }        
+        stage ('Test 3: Master') {
+			when {
+				expression {
+				return env.GIT_BRANCH == "origin/master"
+					}
+				} 
+			steps { 
+				echo 'I only execute on the master branch.' 
+				}
+			}
 
+		}
+	}
