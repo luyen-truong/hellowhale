@@ -54,6 +54,5 @@ pipeline {
 			echo 'I execute on non-master branches.'
 				  }
 				}
->>>>>>> 694125fb52ea5b38c7ef4c21df95c7964447dce9
 		}
 	}
