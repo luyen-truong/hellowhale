@@ -25,14 +25,17 @@ pipeline {
                     sh "docker push -- gcr.io/gcpcloudtest/hello:${env.BUILD_ID}"
                     }
                 }
-        stage('Deploy to GKE') {
-			if (env.BRANCH_NAME == 'master') {
-            steps{
-                sh "sed -i 's/hello:latest/hello:${env.BUILD_ID}/g' deployment.yaml"
-                step([$class: 'KubernetesEngineBuilder', projectId: env.PROJECT_ID, clusterName: env.CLUSTER_NAME, location: env.LOCATION, manifestPattern: 'deployment.yaml', credentialsId: env.CREDENTIALS_ID, verifyDeployments: true])
-				}
-			}
-		}
-	}
+        stage('test3') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'master') {
+                        echo 'I only execute on the master branch'
+                    } else {
+                        echo 'I execute elsewhere'
+                    }
+                }
+            }
+        }
+    }
 }
 
