@@ -2,8 +2,7 @@ pipeline {
     agent any
     environment {
         PROJECT_ID = 'gcpcloudtest'
-        CLUSTER_NAME_PRO = 'production'
-		CLUSTER_NAME_STG = 'staging'
+        CLUSTER_NAME = 'kubernetes'
         LOCATION = 'europe-west2-a'
         CREDENTIALS_ID = 'gke-6868'
     }
@@ -11,33 +10,37 @@ pipeline {
         stage("Checkout code") {
             steps {
                 checkout scm
-				sh 'echo $BRANCH_NAME'
             }
         }
         stage("Build image") {
             steps {
                 script {
-                    myapp = docker.build("gcr.io/gcpcloudtest/hello:${env.BUILD_ID}")
+                    myapp = docker.build("luyentv/hello:${env.BUILD_ID}")
                 }
             }
         }
         stage("Push image") {
             steps {
-                    sh "docker push -- gcr.io/gcpcloudtest/hello:${env.BUILD_ID}"
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                            myapp.push("latest")
+                            myapp.push("${env.BUILD_ID}")
                     }
                 }
-        stage('Deploy to Staging'){
+            }
+        }        
+        stage ('Test 3: Master') {
+			when { branch 'master' }
+			steps { 
+			echo 'I only execute on the master branch.' 
+				}
+			}
 
-        when{
-            environment name: 'gitlabSourceBranch', value: 'dev'
-
-        }
-
-        steps{
-				sh "sed -i 's/hello:latest/hello:${env.BUILD_ID}/g' deployment.yaml"
-                step([$class: 'KubernetesEngineBuilder', projectId: env.PROJECT_ID, clusterName: env.CLUSTER_NAME_STG, location: env.LOCATION, manifestPattern: 'deployment.yaml', credentialsId: env.CREDENTIALS_ID, verifyDeployments: true])
-            }       
+		stage ('Test 3: Dev') {
+			when { not { branch 'master' } }
+			steps {
+			echo 'I execute on non-master branches.'
+				  }
+				}
 		}
-			
 	}
-}
