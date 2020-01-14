@@ -2,7 +2,8 @@ pipeline {
     agent any
     environment {
         PROJECT_ID = 'gcpcloudtest'
-        CLUSTER_NAME = 'kubernetes'
+        CLUSTER_NAME_PRO = 'production'
+                CLUSTER_NAME_STG = 'staging'
         LOCATION = 'europe-west2-a'
         CREDENTIALS_ID = 'gke-6868'
     }
@@ -15,32 +16,39 @@ pipeline {
         stage("Build image") {
             steps {
                 script {
-                    myapp = docker.build("luyentv/hello:${env.BUILD_ID}")
+                    myapp = docker.build("gcr.io/gcpcloudtest/hello:${env.BUILD_ID}")
                 }
             }
         }
         stage("Push image") {
             steps {
-                script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                            myapp.push("latest")
-                            myapp.push("${env.BUILD_ID}")
+                    sh "docker push -- gcr.io/gcpcloudtest/hello:${env.BUILD_ID}"
                     }
                 }
-            }
-        }        
-        stage ('Test 3: Master') {
-			when { branch 'master' }
-			steps { 
-			echo 'I only execute on the master branch.' 
-				}
-			}
+                stage ('Deploy to GKE-Production : Master') {
+                        when {
+                                expression {
+                                return env.GIT_BRANCH == "origin/master"
+                                        }
+                                }
+                        steps {
+                                sh "sed -i 's/hello:latest/hello:${env.BUILD_ID}/g' deployment.yaml"
+                                step([$class: 'KubernetesEngineBuilder', projectId: env.PROJECT_ID, clusterName: env.CLUSTER_NAME_PRO, location: env.LOCATION, manifestPattern: 'deployment.yaml',
+                                credentialsId: env.CREDENTIALS_ID, verifyDeployments: true])
+                                  }
+                            }
+                stage ('Deploy to GKE-Staging : DEV') {
+                        when {
+                                expression {
+                                return env.GIT_BRANCH == "origin/dev"
+                                        }
+                                }
+                        steps {
+                                sh "sed -i 's/hello:latest/hello:${env.BUILD_ID}/g' deployment.yaml"
+                                step([$class: 'KubernetesEngineBuilder', projectId: env.PROJECT_ID, clusterName: env.CLUSTER_NAME_STG, location: env.LOCATION, manifestPattern: 'deployment.yaml',
+                                credentialsId: env.CREDENTIALS_ID, verifyDeployments: true])
+                                  }
+                            }
+                        }
+                }
 
-		stage ('Test 3: Dev') {
-			when { not { branch 'master' } }
-			steps {
-			echo 'I execute on non-master branches.'
-				  }
-				}
-		}
-	}
